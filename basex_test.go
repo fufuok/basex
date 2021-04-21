@@ -1,8 +1,11 @@
+// forked from eknkc/basex
 package basex
 
 import (
 	h "encoding/hex"
 	"testing"
+
+	"github.com/fufuok/basex/base58"
 )
 
 var testCases = []struct {
@@ -121,20 +124,36 @@ var testCases = []struct {
 }
 
 func Test_AmbiguousAlphabet(t *testing.T) {
-	_, err := NewEncoding("01gh1")
-	expect(err.Error(), "Ambiguous alphabet.", t)
+	_, err := New("01gh1")
+	expect(err.Error(), "ambiguous alphabet", t)
+}
+
+func TestB58(t *testing.T)  {
+	enc, _ := New("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+	expect(enc.Encode(hex("546573742064617461")), "25JnwSn7XKfNQ", t)
+	expect(enc.Encode(hex("546573742064617461")), base58.Encode([]byte("Test data")), t)
+}
+
+func TestHex(t *testing.T)  {
+	enc, _ := New("0123456789abcdef")
+	expect(enc.Encode(hex("546573742064617461")), "546573742064617461", t)
+}
+
+func TestNil(t *testing.T)  {
+	enc, _ := New("0123456789abcdef")
+	expect(enc.Encode(nil), "", t)
 }
 
 func Test_Encode(t *testing.T) {
 	for _, cs := range testCases {
-		enc, _ := NewEncoding(cs.alphabet)
+		enc, _ := New(cs.alphabet)
 		expect(enc.Encode(hex(cs.dec)), cs.enc, t)
 	}
 }
 
 func Test_Decode(t *testing.T) {
 	for _, cs := range testCases {
-		enc, _ := NewEncoding(cs.alphabet)
+		enc, _ := New(cs.alphabet)
 		dec, err := enc.Decode(cs.enc)
 		if err != nil {
 			t.Fatal(err)
@@ -144,17 +163,17 @@ func Test_Decode(t *testing.T) {
 }
 
 func Test_NonDecodable(t *testing.T) {
-	enc, _ := NewEncoding("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+	enc, _ := New("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 	_, err := enc.Decode("invalid")
-	expect(err.Error(), "Non Base Character", t)
+	expect(err.Error(), "non base character", t)
 	_, err = enc.Decode("c2F0b3NoaQo=")
-	expect(err.Error(), "Non Base Character", t)
+	expect(err.Error(), "non base character", t)
 	_, err = enc.Decode(" 1111111111")
-	expect(err.Error(), "Non Base Character", t)
+	expect(err.Error(), "non base character", t)
 	_, err = enc.Decode("1111111111 ")
-	expect(err.Error(), "Non Base Character", t)
+	expect(err.Error(), "non base character", t)
 	_, err = enc.Decode(" \t\n\u000b\f\r skip \r\f\u000b\n\t a")
-	expect(err.Error(), "Non Base Character", t)
+	expect(err.Error(), "non base character", t)
 }
 
 func hex(in string) []byte {

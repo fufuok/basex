@@ -1,1 +1,3 @@
-module github.com/eknkc/basex
+module github.com/fufuok/basex
+
+go 1.15

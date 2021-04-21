@@ -1,5 +1,6 @@
 // Package basex provides fast base encoding / decoding of any given alphabet using bitcoin style leading zero compression.
 // It is a GO port of https://github.com/cryptocoinjs/base-x
+// forked from eknkc/basex
 package basex
 
 import (
@@ -8,28 +9,30 @@ import (
 )
 
 // Encoding is a custom base encoding defined by an alphabet.
-// It should bre created using NewEncoding function
+// It should bre created using New function
 type Encoding struct {
 	base        int
 	alphabet    []rune
 	alphabetMap map[rune]int
 }
 
-// NewEncoding returns a custom base encoder defined by the alphabet string.
+// New returns a custom base encoder defined by the alphabet string.
 // The alphabet should contain non-repeating characters.
 // Ordering is important.
 // Example alphabets:
 //   - base2: 01
 //   - base16: 0123456789abcdef
 //   - base32: 0123456789ABCDEFGHJKMNPQRSTVWXYZ
+//   - base36: 0123456789abcdefghijklmnopqrstuvwxyz
+//   - base58: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
 //   - base62: 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
-func NewEncoding(alphabet string) (*Encoding, error) {
+func New(alphabet string) (*Encoding, error) {
 	runes := []rune(alphabet)
 	runeMap := make(map[rune]int)
 
 	for i := 0; i < len(runes); i++ {
 		if _, ok := runeMap[runes[i]]; ok {
-			return nil, errors.New("Ambiguous alphabet.")
+			return nil, errors.New("ambiguous alphabet")
 		}
 
 		runeMap[runes[i]] = i
@@ -87,36 +90,36 @@ func (e *Encoding) Decode(source string) ([]byte, error) {
 
 	runes := []rune(source)
 
-	bytes := []byte{0}
+	res := []byte{0}
 	for i := 0; i < len(source); i++ {
 		value, ok := e.alphabetMap[runes[i]]
 
 		if !ok {
-			return nil, errors.New("Non Base Character")
+			return nil, errors.New("non base character")
 		}
 
-		carry := int(value)
+		carry := value
 
-		for j := 0; j < len(bytes); j++ {
-			carry += int(bytes[j]) * e.base
-			bytes[j] = byte(carry & 0xff)
+		for j := 0; j < len(res); j++ {
+			carry += int(res[j]) * e.base
+			res[j] = byte(carry & 0xff)
 			carry >>= 8
 		}
 
 		for carry > 0 {
-			bytes = append(bytes, byte(carry&0xff))
+			res = append(res, byte(carry&0xff))
 			carry >>= 8
 		}
 	}
 
 	for k := 0; runes[k] == e.alphabet[0] && k < len(runes)-1; k++ {
-		bytes = append(bytes, 0)
+		res = append(res, 0)
 	}
 
-	// Reverse bytes
-	for i, j := 0, len(bytes)-1; i < j; i, j = i+1, j-1 {
-		bytes[i], bytes[j] = bytes[j], bytes[i]
+	// Reverse res
+	for i, j := 0, len(res)-1; i < j; i, j = i+1, j-1 {
+		res[i], res[j] = res[j], res[i]
 	}
 
-	return bytes, nil
+	return res, nil
 }
