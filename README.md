@@ -8,6 +8,32 @@
 
 以及任意自定义字母表
 
+## base62 (推荐)
+
+*forked from jxskiss/base62*
+
+```go
+// Basic usage.
+Encode(src []byte) []byte
+EncodeToString(src []byte) string
+Decode(src []byte) ([]byte, error)
+DecodeString(src string) ([]byte, error)
+FormatInt(num int64) []byte
+FormatUint(num uint64) []byte
+ParseInt(src []byte) (int64, error)
+ParseUint(src []byte) (uint64, error)
+
+// Providing a dst buffer, you may reuse buffers to reduce memory allocation.
+EncodeToBuf(dst []byte, src []byte) []byte
+DecodeToBuf(dst []byte, src []byte) ([]byte, error)
+AppendInt(dst []byte, num int64) []byte
+AppendUint(dst []byte, num uint64) []byte
+
+// Or you may use a custom encoding alphabet.
+enc := NewEncoding("...my-62-byte-string-alphabet...")
+enc.XXX()
+```
+
 ## base58
 
 包含: `Bitcoin` `IPFS` `Flickr` `Ripple`
